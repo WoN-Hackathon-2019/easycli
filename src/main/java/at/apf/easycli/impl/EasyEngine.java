@@ -9,7 +9,7 @@ import at.apf.easycli.exception.CommandNotFoundException;
 import at.apf.easycli.exception.MalformedCommandException;
 import at.apf.easycli.exception.MalformedMethodException;
 import at.apf.easycli.util.Tuple;
-import at.apf.easycli.util.TypeParsre;
+import at.apf.easycli.util.TypeParser;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.lang.reflect.Method;
@@ -26,7 +26,7 @@ import java.util.Map;
 public class EasyEngine implements CliEngine {
 
     private Map<String, Tuple<Method, Object>> commands = new HashMap<>();
-    private TypeParsre tp = new TypeParsre();
+    private TypeParser tp = new TypeParser();
     private CliSplitter splitter = new CliSplitter();
 
     @Override

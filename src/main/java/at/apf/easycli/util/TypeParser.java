@@ -1,6 +1,6 @@
 package at.apf.easycli.util;
 
-public class TypeParsre {
+public class TypeParser {
 
     public boolean isValidType(Class type) {
         return type.equals(int.class) || type.equals(long.class) || type.equals(float.class)
