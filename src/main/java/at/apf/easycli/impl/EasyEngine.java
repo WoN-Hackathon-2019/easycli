@@ -226,7 +226,11 @@ public class EasyEngine implements CliEngine {
 
         for (int i = 1; i < cmdParts.size(); i++) {
             String p = cmdParts.get(i);
-            if (!p.startsWith("-")) {
+            if (p.startsWith("-")) {
+                if (p.charAt(1) >= '0' && p.charAt(1) <= '9') {
+                    args.add(p);
+                }
+            } else {
                 args.add(p);
             }
         }
@@ -242,6 +246,9 @@ public class EasyEngine implements CliEngine {
             if (p.startsWith("--")) {
                 flags.add(p.substring(2));
             } else if (p.startsWith("-")) {
+                if (p.charAt(1) >= '0' && p.charAt(1) <= '9') {
+                    continue;
+                }
                 for (int i = 1; i < p.length(); i++) {
                     flags.add(p.charAt(i) + "");
                 }

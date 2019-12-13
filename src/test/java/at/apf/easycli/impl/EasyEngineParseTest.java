@@ -64,5 +64,21 @@ public class EasyEngineParseTest {
         Assert.assertEquals(5, container.getValue().intValue());
     }
 
+    @Test
+    public void parseAllTypes_shouldGiveZero() throws Exception {
+        engine.add(new Object(){
+            @Command("/bla")
+            void bla(int a, long b, float c, double d, boolean e, String f) {
+                Assert.assertEquals(1, a);
+                Assert.assertEquals(10000000000L, b);
+                Assert.assertEquals(1.1, c, 0.0001);
+                Assert.assertEquals(-4.543, d, 0.0000001);
+                Assert.assertTrue(e);
+                Assert.assertEquals("jaja", f);
+            }
+        });
+        engine.parse("/bla 1 10000000000 1.1 -4.543 true jaja");
+    }
+
 
 }
