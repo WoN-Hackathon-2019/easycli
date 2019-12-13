@@ -6,8 +6,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/***
+ * Splits command strings into its parts.
+ */
 public class CliSplitter {
 
+    /***
+     * Splits the given cmd string into ints parts seperated by spaces. Spaces within quotes disable the spitting.
+     * To use quotes inside quotes, the backslash \ can be used as escape character.
+     * @param cmd String to split into parts.
+     * @return List which contains all parts.
+     */
     public List<String> split(String cmd) {
         List<String> parts = new LinkedList<>();
         int lastPos = 0;
@@ -27,7 +36,7 @@ public class CliSplitter {
             throw new MalformedCommandException("Malformed string. \" is missing");
         }
 
-        parts.add(cmd.substring(lastPos, cmd.length()));
+        parts.add(cmd.substring(lastPos));
 
         parts = parts.stream()
                 .map(s -> s.startsWith("\"") ? s.substring(1) : s)

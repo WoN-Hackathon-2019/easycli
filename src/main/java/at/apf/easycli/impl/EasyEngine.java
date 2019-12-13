@@ -10,7 +10,6 @@ import at.apf.easycli.exception.MalformedCommandException;
 import at.apf.easycli.exception.MalformedMethodException;
 import at.apf.easycli.util.Tuple;
 import at.apf.easycli.util.TypeParsre;
-import com.sun.javaws.exceptions.InvalidArgumentException;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.lang.reflect.Method;
@@ -20,6 +19,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/***
+ * Implementation to register command-containing objects and then parse command strings to invoke the implemented
+ * commands.
+ */
 public class EasyEngine implements CliEngine {
 
     private Map<String, Tuple<Method, Object>> commands = new HashMap<>();
@@ -75,6 +78,7 @@ public class EasyEngine implements CliEngine {
         }
     }
 
+    @Override
     public Object parse(String cmd) throws Exception {
         List<String> parts = splitter.split(cmd);
         List<String> flags = getFlags(parts);
@@ -108,6 +112,11 @@ public class EasyEngine implements CliEngine {
         return method.invoke(commands.get(command).getValue(), paramValues);
     }
 
+    /***
+     * Counts how many optional parameters the given method has.
+     * @param method method to count optional parameters.
+     * @return amount of optional parameters.
+     */
     private int countOptionalArgs(Method method) {
         int count = 0;
 
@@ -120,6 +129,16 @@ public class EasyEngine implements CliEngine {
         return count;
     }
 
+    /***
+     * if possible inserts the argument of the arguments-list at position cmdIndex into the paramValues-array at
+     * position argumentPosition. It parses the argument to the needed type defined in par.
+     * @param arguments list of all arguments of the command line.
+     * @param cmdIndex position which argument of the arguments list is used.
+     * @param par parameter definition which will be filled.
+     * @param paramValues the array where the arguments parsed value gets inserted.
+     * @param argumentPosition the position where the parsed argument should be inserted in the paramValues-array.
+     * @return the nex cmdIndex or -1 if it is finished.
+     */
     private int handleArgument(List<String> arguments, int cmdIndex, Parameter par, Object[] paramValues, int argumentPosition) {
 
         if (arguments.size() <= cmdIndex) {
@@ -207,6 +226,15 @@ public class EasyEngine implements CliEngine {
         return cmdIndex + 1;
     }
 
+    /***
+     * Checks if par is a flag parameter. If yes it searches if the flag is set in the flags list and sets the
+     * paramValues[argumentPosition] true. if it is not set, it the paramValues position will be set to false.
+     * @param flags flags-list where all parsed flags are contained.
+     * @param par parameter definition which will be filled.
+     * @param paramValues the array where the arguments parsed value gets inserted.
+     * @param argumentPosition the position where the parsed argument should be inserted in the paramValues-array.
+     * @return true if par was a flag parameter, otherwise false.
+     */
     private boolean handleFlag(List<String> flags, Parameter par, Object[] paramValues, int argumentPosition) {
         if (!par.isAnnotationPresent(Flag.class)) {
             return false;
@@ -217,6 +245,11 @@ public class EasyEngine implements CliEngine {
         return true;
     }
 
+    /***
+     * Returns a list of all arguments in the cmdParts-list without any flags.
+     * @param cmdParts the parts of the command.
+     * @return list of arguments.
+     */
     private List<String> getArguments(List<String> cmdParts) {
         List<String> args = new ArrayList<>();
 
@@ -234,7 +267,11 @@ public class EasyEngine implements CliEngine {
         return args;
     }
 
-
+    /***
+     * Returns a list of all flags in the cmdParts-list without any argments.
+     * @param cmdParts the parts of the command.
+     * @return list of flags.
+     */
     private List<String> getFlags(List<String> cmdParts) {
         List<String> flags = new ArrayList<>();
 
