@@ -8,6 +8,8 @@ import at.apf.easycli.annotation.Optional;
 import at.apf.easycli.exception.MalformedMethodException;
 import org.junit.Test;
 
+import javax.management.openmbean.KeyAlreadyExistsException;
+
 public class EasyEngineAddTest {
 
     private CliEngine engine = new EasyEngine();
@@ -17,6 +19,20 @@ public class EasyEngineAddTest {
         engine.add(new Object(){
             @Command("/bla")
             void bla() {
+
+            }
+        });
+    }
+
+    @Test
+    public void addTwoCommands_shouldWork() {
+        engine.add(new Object(){
+            @Command("/bla")
+            void bla() {
+
+            }
+            @Command("/tra")
+            void tra() {
 
             }
         });
@@ -157,6 +173,20 @@ public class EasyEngineAddTest {
         engine.add(new Object(){
             @Command("/bla")
             void bla(Object obj) {
+
+            }
+        });
+    }
+
+    @Test(expected = KeyAlreadyExistsException.class)
+    public void addCommandTwice_shouldThrowKeyAlreadyExistsException() {
+        engine.add(new Object(){
+            @Command("/bla")
+            void bla(int a) {
+
+            }
+            @Command("/bla")
+            void bla() {
 
             }
         });

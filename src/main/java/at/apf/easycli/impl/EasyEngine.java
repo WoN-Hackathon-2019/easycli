@@ -12,6 +12,7 @@ import at.apf.easycli.util.Tuple;
 import at.apf.easycli.util.TypeParsre;
 import com.sun.javaws.exceptions.InvalidArgumentException;
 
+import javax.management.openmbean.KeyAlreadyExistsException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
@@ -66,6 +67,9 @@ public class EasyEngine implements CliEngine {
                 if (command == null || command.isEmpty()) {
                     throw new MalformedMethodException("Command value can not be empty");
                 }
+                if (commands.containsKey(command)) {
+                    throw new KeyAlreadyExistsException("Command '" + command + "' already exists");
+                }
                 commands.put(command, new Tuple<>(m, obj));
             }
         }
@@ -95,9 +99,10 @@ public class EasyEngine implements CliEngine {
             }
         }
 
-        if (cmdIndex >= arguments.size()) {
+        // Hard to realise ...
+        /*if (params.length > 0 && cmdIndex > arguments.size()) {
             throw new MalformedCommandException("Too many arguments passed for command '" + command + "'");
-        }
+        }*/
 
         try {
             method.setAccessible(true);
@@ -107,9 +112,21 @@ public class EasyEngine implements CliEngine {
         }
     }
 
+    private int countOptionalArgs(Method method) {
+        int count = 0;
+
+        for (Parameter p: method.getParameters()) {
+            if (p.isAnnotationPresent(Optional.class) || p.isAnnotationPresent(DefaultValue.class)) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
     private int handleArgument(List<String> arguments, int cmdIndex, Parameter par, Object[] paramValues, int argumentPosition) {
 
-        if (arguments.size() >= cmdIndex) {
+        if (arguments.size() <= cmdIndex) {
             // Not set
             if (par.isAnnotationPresent(Optional.class)) {
                 if (par.getType().equals(String.class) || par.getType().isArray()) {
