@@ -2,6 +2,12 @@ package at.apf.easycli.util;
 
 public class TypeParsre {
 
+    public boolean isValidType(Class type) {
+        return type.equals(int.class) || type.equals(long.class) || type.equals(float.class)
+                || type.equals(double.class) || type.equals(boolean.class) || type.equals(String.class)
+                || (type.isArray() && isValidType(type.getComponentType()));
+    }
+
     public Object parseType(Class type, String str) {
         if (type.equals(int.class)) {
             return toInt(str);

@@ -10,6 +10,7 @@ import at.apf.easycli.exception.MalformedCommandException;
 import at.apf.easycli.exception.MalformedMethodException;
 import at.apf.easycli.util.Tuple;
 import at.apf.easycli.util.TypeParsre;
+import com.sun.javaws.exceptions.InvalidArgumentException;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -28,27 +29,44 @@ public class EasyEngine implements CliEngine {
     public void add(Object obj) {
         for (Method m: obj.getClass().getDeclaredMethods()) {
             if (m.isAnnotationPresent(Command.class)) {
-                // Constraints:
+                // Constraints for arguments:
                 //   - Array at the end
                 //   - Only one array
                 //   - Optionals at the end
                 Parameter[] parameters = m.getParameters();
                 boolean hasOptionals = false;
+                boolean hasArray = false;
                 for (int i = 0; i < parameters.length; i++) {
                     Parameter par = parameters[i];
-                    if (par.getType().isArray() && i + 1 < parameters.length) {
+
+                    if (!tp.isValidType(par.getType())) {
+                        throw new MalformedMethodException("Only simple types and arrays are allowed");
+                    }
+
+                    if (par.isAnnotationPresent(Flag.class)) {
+                        if (!par.getType().equals(boolean.class)) {
+                            throw new MalformedMethodException("Flag parameter must be boolean");
+                        }
+                        continue;
+                    }
+
+                    if (hasArray) {
                         throw new MalformedMethodException("Only one Array at the end of the parameter definition is allowed.");
                     }
+                    hasArray = par.getType().isArray();
+
                     boolean isOptional = par.isAnnotationPresent(Optional.class) || par.isAnnotationPresent(DefaultValue.class);
                     if (hasOptionals && !isOptional) {
                         throw new MalformedMethodException("Non-optional parameter at position " + i
                                 + ".Only optional parameters are allowed after an optional parameter");
                     }
-                    if (isOptional) {
-                        hasOptionals = true;
-                    }
+                    hasOptionals = isOptional;
                 }
-                commands.put(m.getAnnotation(Command.class).value(), new Tuple<>(m, obj));
+                String command = m.getAnnotation(Command.class).value();
+                if (command == null || command.isEmpty()) {
+                    throw new MalformedMethodException("Command value can not be empty");
+                }
+                commands.put(command, new Tuple<>(m, obj));
             }
         }
     }
