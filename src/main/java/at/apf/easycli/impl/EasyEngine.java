@@ -27,7 +27,7 @@ public class EasyEngine implements CliEngine {
     private CliSplitter splitter = new CliSplitter();
 
     @Override
-    public void add(Object obj) {
+    public void register(Object obj) {
         for (Method m: obj.getClass().getDeclaredMethods()) {
             if (m.isAnnotationPresent(Command.class)) {
                 // Constraints for arguments:
@@ -64,7 +64,7 @@ public class EasyEngine implements CliEngine {
                     hasOptionals = isOptional;
                 }
                 String command = m.getAnnotation(Command.class).value();
-                if (command == null || command.isEmpty()) {
+                if (command.isEmpty()) {
                     throw new MalformedMethodException("Command value can not be empty");
                 }
                 if (commands.containsKey(command)) {
@@ -104,12 +104,8 @@ public class EasyEngine implements CliEngine {
             throw new MalformedCommandException("Too many arguments passed for command '" + command + "'");
         }*/
 
-        try {
-            method.setAccessible(true);
-            return method.invoke(commands.get(command).getValue(), paramValues);
-        } catch (Exception e) {
-            throw e;
-        }
+        method.setAccessible(true);
+        return method.invoke(commands.get(command).getValue(), paramValues);
     }
 
     private int countOptionalArgs(Method method) {

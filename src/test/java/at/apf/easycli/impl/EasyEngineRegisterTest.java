@@ -10,13 +10,13 @@ import org.junit.Test;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 
-public class EasyEngineAddTest {
+public class EasyEngineRegisterTest {
 
     private CliEngine engine = new EasyEngine();
 
     @Test
-    public void addWithoutParams_shouldWork() {
-        engine.add(new Object(){
+    public void registerWithoutParams_shouldWork() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla() {
 
@@ -25,8 +25,8 @@ public class EasyEngineAddTest {
     }
 
     @Test
-    public void addTwoCommands_shouldWork() {
-        engine.add(new Object(){
+    public void registerTwoCommands_shouldWork() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla() {
 
@@ -39,8 +39,8 @@ public class EasyEngineAddTest {
     }
 
     @Test
-    public void addSingleParam_shouldWork() {
-        engine.add(new Object(){
+    public void registerSingleParam_shouldWork() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla(String asdf) {
 
@@ -49,8 +49,8 @@ public class EasyEngineAddTest {
     }
 
     @Test
-    public void addFiveParams_shouldWork() {
-        engine.add(new Object(){
+    public void registerFiveParams_shouldWork() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla(String asdf, String bla, String tra, String lkjlkj, String kdkdk) {
 
@@ -59,8 +59,8 @@ public class EasyEngineAddTest {
     }
 
     @Test
-    public void addSingleOptionalParam_shouldWork() {
-        engine.add(new Object(){
+    public void registerSingleOptionalParam_shouldWork() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla(@Optional String nanan) {
 
@@ -69,8 +69,8 @@ public class EasyEngineAddTest {
     }
 
     @Test
-    public void addSingleDefaultValueParam_shouldWork() {
-        engine.add(new Object(){
+    public void registerSingleDefaultValueParam_shouldWork() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla(@DefaultValue("jojo") String var1) {
 
@@ -79,8 +79,8 @@ public class EasyEngineAddTest {
     }
 
     @Test
-    public void addThreeOptionals_shouldWork() {
-        engine.add(new Object(){
+    public void registerThreeOptionals_shouldWork() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla(@Optional int a, @Optional int b, @Optional int c) {
 
@@ -89,8 +89,8 @@ public class EasyEngineAddTest {
     }
 
     @Test
-    public void addSingleArray_shouldWork() {
-        engine.add(new Object(){
+    public void registerSingleArray_shouldWork() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla(String[] arr) {
 
@@ -99,8 +99,8 @@ public class EasyEngineAddTest {
     }
 
     @Test
-    public void addWithArrayAtTheEnd_shouldWork() {
-        engine.add(new Object(){
+    public void registerWithArrayAtTheEnd_shouldWork() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla(String var1, String[] arr) {
 
@@ -109,8 +109,8 @@ public class EasyEngineAddTest {
     }
 
     @Test
-    public void addWithFlagAfterOptional_shouldWork() {
-        engine.add(new Object(){
+    public void registerWithFlagAfterOptional_shouldWork() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla(@Optional String var1, @Flag('c') boolean c) {
 
@@ -119,8 +119,8 @@ public class EasyEngineAddTest {
     }
 
     @Test
-    public void addWithFlagAfterArray_shouldWork() {
-        engine.add(new Object(){
+    public void registerWithFlagAfterArray_shouldWork() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla(String[] var1, @Flag('c') boolean c) {
 
@@ -129,8 +129,8 @@ public class EasyEngineAddTest {
     }
 
     @Test(expected = MalformedMethodException.class)
-    public void addTwoArrays_shouldThrowMalformedMethodException() {
-        engine.add(new Object(){
+    public void registerTwoArrays_shouldThrowMalformedMethodException() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla(int[] arr1, int[] arr2) {
 
@@ -139,8 +139,8 @@ public class EasyEngineAddTest {
     }
 
     @Test(expected = MalformedMethodException.class)
-    public void addParamAfterArray_shouldThrowMalformedMethodException() {
-        engine.add(new Object(){
+    public void registerParamAfterArray_shouldThrowMalformedMethodException() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla(int[] arr, int var1) {
 
@@ -149,8 +149,8 @@ public class EasyEngineAddTest {
     }
 
     @Test(expected = MalformedMethodException.class)
-    public void addNonOptionalAfterOptional_shouldThrowMalformedMethodException() {
-        engine.add(new Object(){
+    public void registerNonOptionalAfterOptional_shouldThrowMalformedMethodException() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla(@Optional int a, int b) {
 
@@ -159,8 +159,8 @@ public class EasyEngineAddTest {
     }
 
     @Test(expected = MalformedMethodException.class)
-    public void addNoBooleanForFlag_shouldThrowMalformedMethodException() {
-        engine.add(new Object(){
+    public void registerNoBooleanForFlag_shouldThrowMalformedMethodException() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla(@Flag('a') int a) {
 
@@ -169,8 +169,8 @@ public class EasyEngineAddTest {
     }
 
     @Test(expected = MalformedMethodException.class)
-    public void addComplexType_shouldThrowMalformedMethodException() {
-        engine.add(new Object(){
+    public void registerComplexType_shouldThrowMalformedMethodException() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla(Object obj) {
 
@@ -179,8 +179,8 @@ public class EasyEngineAddTest {
     }
 
     @Test(expected = KeyAlreadyExistsException.class)
-    public void addCommandTwice_shouldThrowKeyAlreadyExistsException() {
-        engine.add(new Object(){
+    public void registerCommandTwice_shouldThrowKeyAlreadyExistsException() {
+        engine.register(new Object(){
             @Command("/bla")
             void bla(int a) {
 
