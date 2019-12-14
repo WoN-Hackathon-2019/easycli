@@ -4,6 +4,7 @@ import at.apf.easycli.CliEngine;
 import at.apf.easycli.annotation.Command;
 import at.apf.easycli.annotation.DefaultValue;
 import at.apf.easycli.annotation.Flag;
+import at.apf.easycli.annotation.Meta;
 import at.apf.easycli.annotation.Optional;
 import at.apf.easycli.exception.CommandNotFoundException;
 import at.apf.easycli.exception.MalformedCommandException;
@@ -224,6 +225,35 @@ public class EasyEngineParseTest {
         Assert.assertEquals(5, result);
     }
 
+    @Test
+    public void parseWithMeta_shouldWork() throws Exception {
+        MutableContainer<Integer> container = new MutableContainer<>(5);
+        engine.register(new Object(){
+            @Command("/increase")
+            void add(int a, @Meta MutableContainer<Integer> data) {
+                data.setValue(data.getValue() + a);
+            }
+        });
+        engine.parse("/increase 2", container);
+        Assert.assertEquals(7, container.getValue().intValue());
+    }
+
+    @Test
+    public void parseWithTwoMeta_shouldWork() throws Exception {
+        MutableContainer<Integer> containerA = new MutableContainer<>(5);
+        MutableContainer<Integer> containerB = new MutableContainer<>(9);
+        engine.register(new Object(){
+            @Command("/increase")
+            void add(int a, @Meta MutableContainer<Integer> data1, @Meta MutableContainer<Integer> data2) {
+                data1.setValue(data1.getValue() + a);
+                data2.setValue(data2.getValue() + a);
+            }
+        });
+        engine.parse("/increase 2", containerA, containerB);
+        Assert.assertEquals(7, containerA.getValue().intValue());
+        Assert.assertEquals(11, containerB.getValue().intValue());
+    }
+
     @Test(expected = MalformedCommandException.class)
     public void parseWithMissingArgument_shouldThrowMalformedCommandException() throws Exception {
         engine.register(new Object(){
@@ -257,5 +287,15 @@ public class EasyEngineParseTest {
         engine.parse("/add bla");
     }
 
+    @Test(expected = MalformedCommandException.class)
+    public void parseWithTooManyArgument_shouldThrowMalformedCommandException() throws Exception {
+        engine.register(new Object(){
+            @Command("/add")
+            int add(int a, int b) {
+                return a + b;
+            }
+        });
+        engine.parse("/add 2 3 4");
+    }
 
 }

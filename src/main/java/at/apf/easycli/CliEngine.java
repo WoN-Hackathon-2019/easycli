@@ -35,4 +35,18 @@ public interface CliEngine {
      */
     Object parse(String cmd) throws Exception;
 
+    /***
+     * Parses the command string, and searchs for a registered command implementation and invokes it with all its
+     * arguments and the given metadata objects.
+     * @param cmd command to parse.
+     * @param metadata metadata to pass into the implemented command method.
+     * @return the result of the invoked command method.
+     * @throws Exception if the command can't be found, or there is a parsing error.
+     *
+     * <pre>
+     *     int result = cliEngine.parse("/add 5 4", obj1, obj2);
+     * </pre>
+     */
+    Object parse(String cmd, Object... metadata) throws Exception;
+
 }

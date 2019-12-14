@@ -4,6 +4,7 @@ import at.apf.easycli.CliEngine;
 import at.apf.easycli.annotation.Command;
 import at.apf.easycli.annotation.DefaultValue;
 import at.apf.easycli.annotation.Flag;
+import at.apf.easycli.annotation.Meta;
 import at.apf.easycli.annotation.Optional;
 import at.apf.easycli.exception.CommandNotFoundException;
 import at.apf.easycli.exception.MalformedCommandException;
@@ -43,6 +44,10 @@ public class EasyEngine implements CliEngine {
                 for (int i = 0; i < parameters.length; i++) {
                     Parameter par = parameters[i];
 
+                    if (par.isAnnotationPresent(Meta.class)) {
+                        continue;
+                    }
+
                     if (!tp.isValidType(par.getType())) {
                         throw new MalformedMethodException("Only simple types and arrays are allowed");
                     }
@@ -80,6 +85,11 @@ public class EasyEngine implements CliEngine {
 
     @Override
     public Object parse(String cmd) throws Exception {
+        return parse(cmd, new Object[0]);
+    }
+
+    @Override
+    public Object parse(String cmd, Object... metadata) throws Exception {
         List<String> parts = splitter.split(cmd);
         List<String> flags = getFlags(parts);
         List<String> arguments = getArguments(parts);
@@ -94,22 +104,34 @@ public class EasyEngine implements CliEngine {
         Object[] paramValues = new Object[params.length];
 
         int cmdIndex = 0;
+        int metaIndex = 0;
         for (int i = 0; i < params.length; i++) {
+            if (handleMetaArgument(metadata, metaIndex, params[i], paramValues, i)) {
+                metaIndex++;
+                continue;
+            }
             if (!handleFlag(flags, params[i], paramValues, i)) {
                 cmdIndex = handleArgument(arguments, cmdIndex, params[i], paramValues, i);
-                if (cmdIndex < 0) {
-                    break;
-                }
             }
         }
 
         // Hard to realise ...
-        /*if (params.length > 0 && cmdIndex > arguments.size()) {
+        if (cmdIndex > 0 && arguments.size() > countArgumentParameters(method)) {
             throw new MalformedCommandException("Too many arguments passed for command '" + command + "'");
-        }*/
+        }
 
         method.setAccessible(true);
         return method.invoke(commands.get(command).getValue(), paramValues);
+    }
+
+    private int countArgumentParameters(Method method) {
+        int count = 0;
+        for (Parameter p: method.getParameters()) {
+            if (!p.isAnnotationPresent(Meta.class) && !p.isAnnotationPresent(Flag.class)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /***
@@ -129,6 +151,27 @@ public class EasyEngine implements CliEngine {
         return count;
     }
 
+    private boolean handleMetaArgument(Object[] metadata, int metaIndex, Parameter par, Object[] paramValues, int argumentPosition) {
+        if (!par.isAnnotationPresent(Meta.class)) {
+            return false;
+        }
+
+        if (metaIndex >= metadata.length) {
+            if (par.isAnnotationPresent(Optional.class)) {
+                paramValues[argumentPosition] = getOptionalValue(par);
+            } else if (par.isAnnotationPresent(DefaultValue.class)) {
+                String defaultValue = par.getAnnotation(DefaultValue.class).value();
+                paramValues[argumentPosition] = tp.parseType(par.getType(), defaultValue);
+            } else {
+                throw new MalformedCommandException("Metadata argument '" + par.getName() + "' is missing.");
+            }
+        } else {
+            paramValues[argumentPosition] = metadata[metaIndex];
+        }
+
+        return true;
+    }
+
     /***
      * if possible inserts the argument of the arguments-list at position cmdIndex into the paramValues-array at
      * position argumentPosition. It parses the argument to the needed type defined in par.
@@ -144,13 +187,7 @@ public class EasyEngine implements CliEngine {
         if (arguments.size() <= cmdIndex) {
             // Not set
             if (par.isAnnotationPresent(Optional.class)) {
-                if (par.getType().equals(String.class) || par.getType().isArray()) {
-                    paramValues[argumentPosition] = null;
-                } else if (par.getType().equals(boolean.class)) {
-                    paramValues[argumentPosition] = false;
-                } else {
-                    paramValues[argumentPosition] = 0;
-                }
+                paramValues[argumentPosition] = getOptionalValue(par);
             } else if (par.isAnnotationPresent(DefaultValue.class)) {
                 String defaultValue = par.getAnnotation(DefaultValue.class).value();
                 paramValues[argumentPosition] = tp.parseType(par.getType(), defaultValue);
@@ -289,6 +326,18 @@ public class EasyEngine implements CliEngine {
         }
 
         return flags;
+    }
+
+    private Object getOptionalValue(Parameter par) {
+        if (par.getType().equals(boolean.class)) {
+            return false;
+        } else if (par.getType().equals(int.class) || par.getType().equals(long.class)) {
+            return 0;
+        } else if (par.getType().equals(float.class) || par.getType().equals(double.class)) {
+            return 0.0;
+        } else {
+            return null;
+        }
     }
 
 }

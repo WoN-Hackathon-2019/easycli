@@ -4,6 +4,7 @@ import at.apf.easycli.CliEngine;
 import at.apf.easycli.annotation.Command;
 import at.apf.easycli.annotation.DefaultValue;
 import at.apf.easycli.annotation.Flag;
+import at.apf.easycli.annotation.Meta;
 import at.apf.easycli.annotation.Optional;
 import at.apf.easycli.exception.MalformedMethodException;
 import org.junit.Test;
@@ -123,6 +124,16 @@ public class EasyEngineRegisterTest {
         engine.register(new Object(){
             @Command("/bla")
             void bla(String[] var1, @Flag('c') boolean c) {
+
+            }
+        });
+    }
+
+    @Test
+    public void registerWithMetaAfterArray_shouldWork() {
+        engine.register(new Object(){
+            @Command("/bla")
+            void bla(String[] var1, @Meta Object obj) {
 
             }
         });

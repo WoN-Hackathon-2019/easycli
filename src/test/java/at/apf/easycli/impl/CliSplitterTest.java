@@ -29,6 +29,14 @@ public class CliSplitterTest {
     }
 
     @Test
+    public void splitWithDoubleSpaceBetweenItems_shouldReturnTwoItems() {
+        List<String> result = splitter.split("/bla  tra");
+        Assert.assertEquals(2, result.size());
+        Assert.assertEquals("/bla", result.get(0));
+        Assert.assertEquals("tra", result.get(1));
+    }
+
+    @Test
     public void splitWithQuotes_shouldWork() {
         List<String> result = splitter.split("/bla \"tra kla wa\" na");
         Assert.assertEquals(3, result.size());

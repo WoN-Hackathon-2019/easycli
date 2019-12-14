@@ -39,6 +39,7 @@ public class CliSplitter {
         parts.add(cmd.substring(lastPos));
 
         parts = parts.stream()
+                .filter(s -> !s.isEmpty())
                 .map(s -> s.startsWith("\"") ? s.substring(1) : s)
                 .map(s -> s.endsWith("\"") ? s.substring(0, s.length() - 1) : s)
                 .map(s -> s.replace("\\\"", "\""))
