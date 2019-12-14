@@ -15,7 +15,7 @@ Add the dependency to your pom.xml:
 <dependency>
     <groupId>at.apf.easycli</groupId>
     <artifactId>easy-cli</artifactId>
-    <version>0.3</version>
+    <version>0.4</version>
 </dependency>
 ```
 
@@ -113,6 +113,7 @@ engine.parse("/sendUser \"Hi Bob\"",
  - There is no limit of  @Meta parameters. Just add them in the parse call as
    separated arguments.
  - @Meta parameters can be combined with @Optional and @DefaultValue.
+ - @Usage can be used for commands and flag parameters
 
 ### Changelog
 ##### v0.2
@@ -123,11 +124,14 @@ engine.parse("/sendUser \"Hi Bob\"",
 
 ##### v0.3
  - enum support
- - char support 
+ - char support
+ 
+##### v0.4
+ - Introduced @Usage annotation and CliEngine.listCommands() and
+   CliEngine.usage(command) to describe registered commands.
  
 ### TODOs
  - allow default values for array
- - implement usage method
  - Grouped Optionals
  
 
