@@ -62,6 +62,7 @@ engine.register(new Object() {
 // Parse some command string and execute the registered implementation
 int result = engine.parse("/add 2 3");            // 5
 int[] sorted = engine.parse("/sort -d 7 9 2 78"); // 78 9 7 2
+sorted = engine.parse("/sort 7 9 2 78");          // 2 7 9 78
 engine.parse("/send alice \"Hi alice\"");         // Sends 'Hi alice' to alice
 engine.parse("/send alice");                      // Sends 'Hello' to alice
 engine.parse("/foo 1");                           // 1
