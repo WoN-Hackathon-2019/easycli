@@ -9,6 +9,7 @@ import at.apf.easycli.annotation.Optional;
 import at.apf.easycli.exception.CommandNotFoundException;
 import at.apf.easycli.exception.MalformedCommandException;
 import at.apf.easycli.impl.util.MutableContainer;
+import at.apf.easycli.util.enumeration.Material;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -223,6 +224,45 @@ public class EasyEngineParseTest {
         });
         int result = (int) engine.parse("/add 2 3");
         Assert.assertEquals(5, result);
+    }
+
+    @Test
+    public void parseEnum_shouldWork() throws Exception {
+        MutableContainer<Material> container = new MutableContainer<>(Material.WOOD);
+        engine.register(new Object(){
+            @Command("/change")
+            void change(Material material) {
+                container.setValue(material);
+            }
+        });
+        engine.parse("/change cooper");
+        Assert.assertEquals(Material.COOPER, container.getValue());
+    }
+
+    @Test
+    public void parseOptionalEnum_shouldInjectNull() throws Exception {
+        MutableContainer<Material> container = new MutableContainer<>(Material.WOOD);
+        engine.register(new Object(){
+            @Command("/change")
+            void change(@Optional Material material) {
+                container.setValue(material);
+            }
+        });
+        engine.parse("/change ");
+        Assert.assertEquals(null, container.getValue());
+    }
+
+    @Test
+    public void parseDefaultValueEnum_shouldWork() throws Exception {
+        MutableContainer<Material> container = new MutableContainer<>(Material.WOOD);
+        engine.register(new Object(){
+            @Command("/change")
+            void change(@DefaultValue("steel") Material material) {
+                container.setValue(material);
+            }
+        });
+        engine.parse("/change ");
+        Assert.assertEquals(Material.STEEL, container.getValue());
     }
 
     @Test

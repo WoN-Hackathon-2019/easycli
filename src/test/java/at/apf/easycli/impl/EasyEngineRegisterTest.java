@@ -7,6 +7,7 @@ import at.apf.easycli.annotation.Flag;
 import at.apf.easycli.annotation.Meta;
 import at.apf.easycli.annotation.Optional;
 import at.apf.easycli.exception.MalformedMethodException;
+import at.apf.easycli.util.enumeration.Material;
 import org.junit.Test;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
@@ -44,6 +45,16 @@ public class EasyEngineRegisterTest {
         engine.register(new Object(){
             @Command("/bla")
             void bla(String asdf) {
+
+            }
+        });
+    }
+
+    @Test
+    public void registerEnum_shouldWork() {
+        engine.register(new Object(){
+            @Command("/bla")
+            void bla(Material material) {
 
             }
         });
