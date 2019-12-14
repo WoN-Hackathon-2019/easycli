@@ -15,7 +15,7 @@ Add the dependency to your pom.xml:
 <dependency>
     <groupId>at.apf.easycli</groupId>
     <artifactId>easy-cli</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.2</version>
 </dependency>
 ```
 
@@ -52,6 +52,11 @@ engine.register(new Object() {
     int foo(@DefaultValue("9") int bar) {
         return bar;
     }
+    
+    @Command("/sendUser")
+    void sendUser(String msg, @Meta User user) {
+        this.sendMessage(user.getAddress(), msg);
+    }
 });
 
 // Parse some command string and execute the registered implementation
@@ -61,6 +66,8 @@ engine.parse("/send alice \"Hi alice\"");         // Sends 'Hi alice' to alice
 engine.parse("/send alice");                      // Sends 'Hello' to alice
 engine.parse("/foo 1");                           // 1
 engine.parse("/foo");                             // 9
+engine.parse("/sendUser \"Hi Bob\"", 
+        new User("Bob"));                         // Sends 'Hi Bob' to Bob
 ```
 
 ### Supported Datatypes
@@ -100,10 +107,22 @@ engine.parse("/foo");                             // 9
    parameters have as well to be annotated with one of them.
  - @Optional annotated parameters will be parsed to null if the argument is not
    set (also for arrays).
-   
-### Coming up
+ - @Meta parameters can be of any type.
+ - There is no limit of  @Meta parameters. Just add them in the parse call as
+   separated arguments.
+ - @Meta parameters can be combined with @Optional and @DefaultValue.
+
+### Changelog
+##### 0.2
+ - Ignoring multiple spaces in the input command and handle them as a single
+   one
+ - Introduced @Meta annotation to pass outstanding objects to the commands
+   implementation.   
+ 
+### TODOs
  - Support enum types
  - allow default values for array
  - implement usage method
+ - Grouped Optionals
  
 

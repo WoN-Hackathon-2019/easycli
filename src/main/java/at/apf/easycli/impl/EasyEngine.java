@@ -135,22 +135,15 @@ public class EasyEngine implements CliEngine {
     }
 
     /***
-     * Counts how many optional parameters the given method has.
-     * @param method method to count optional parameters.
-     * @return amount of optional parameters.
+     * if possible inserts the meta object of the metadata array at position metaIndex into the
+     * paramValues-array at position argumentPosition.
+     * @param metadata array of all metadata objects for the command.
+     * @param metaIndex position which metadata object of the metadata array is used.
+     * @param par parameter definition which will be filled.
+     * @param paramValues the array where the metadata object value gets inserted.
+     * @param argumentPosition the position where the metadata object should be inserted in the paramValues-array.
+     * @return true if par was a Meta parameter, otherwise false
      */
-    private int countOptionalArgs(Method method) {
-        int count = 0;
-
-        for (Parameter p: method.getParameters()) {
-            if (p.isAnnotationPresent(Optional.class) || p.isAnnotationPresent(DefaultValue.class)) {
-                count++;
-            }
-        }
-
-        return count;
-    }
-
     private boolean handleMetaArgument(Object[] metadata, int metaIndex, Parameter par, Object[] paramValues, int argumentPosition) {
         if (!par.isAnnotationPresent(Meta.class)) {
             return false;
@@ -180,7 +173,7 @@ public class EasyEngine implements CliEngine {
      * @param par parameter definition which will be filled.
      * @param paramValues the array where the arguments parsed value gets inserted.
      * @param argumentPosition the position where the parsed argument should be inserted in the paramValues-array.
-     * @return the nex cmdIndex or -1 if it is finished.
+     * @return the next cmdIndex or -1 if it is finished.
      */
     private int handleArgument(List<String> arguments, int cmdIndex, Parameter par, Object[] paramValues, int argumentPosition) {
 
@@ -328,6 +321,11 @@ public class EasyEngine implements CliEngine {
         return flags;
     }
 
+    /***
+     * Retunrs the default value for an optional {@link Parameter}.
+     * @param par the parameter to find out the default value.
+     * @return the default value for the par's type.
+     */
     private Object getOptionalValue(Parameter par) {
         if (par.getType().equals(boolean.class)) {
             return false;
