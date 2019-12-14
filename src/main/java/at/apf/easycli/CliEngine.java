@@ -49,4 +49,11 @@ public interface CliEngine {
      */
     Object parse(String cmd, Object... metadata) throws Exception;
 
+    /***
+     * Returns the usage text for the given command.
+     * @param cmd Command that needs to start with a registered @{@link at.apf.easycli.annotation.Command}.
+     * @return The usage text for the given command.
+     */
+    String usage(String cmd);
+
 }

@@ -6,6 +6,7 @@ import at.apf.easycli.annotation.DefaultValue;
 import at.apf.easycli.annotation.Flag;
 import at.apf.easycli.annotation.Meta;
 import at.apf.easycli.annotation.Optional;
+import at.apf.easycli.annotation.Usage;
 import at.apf.easycli.exception.CommandNotFoundException;
 import at.apf.easycli.exception.MalformedCommandException;
 import at.apf.easycli.exception.MalformedMethodException;
@@ -24,6 +25,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /***
  * Implementation to register command-containing objects and then parse command strings to invoke the implemented
@@ -127,6 +131,68 @@ public class EasyEngine implements CliEngine {
 
         method.setAccessible(true);
         return method.invoke(commands.get(command).getValue(), paramValues);
+    }
+
+    @Override
+    public String usage(String cmd) {
+        List<String> parts = splitter.split(cmd);
+        String command = parts.get(0);
+
+        if (!commands.containsKey(command)) {
+            throw new CommandNotFoundException("Command '" + command + "' not registered");
+        }
+
+        Method method = commands.get(command).getKey();
+        Parameter[] params = method.getParameters();
+        List<Parameter> flags = Stream.of(params)
+            .filter(p -> p.isAnnotationPresent(Flag.class))
+            .sorted((a, b) -> a.getAnnotation(Flag.class).value() - b.getAnnotation(Flag.class).value())
+            .collect(Collectors.toList());
+        List<Parameter> arguments = Stream.of(params)
+            .filter(p -> !p.isAnnotationPresent(Flag.class) && !p.isAnnotationPresent(Meta.class))
+            .collect(Collectors.toList());
+
+        StringBuilder sb = new StringBuilder("Usage: ");
+        sb.append(command);
+
+        if (flags.size() > 0) {
+            sb.append(" [FLAG...]");
+        }
+
+        int optionalCounter = 0;
+        for (Parameter p: arguments) {
+            sb.append(" ");
+            boolean optional = p.isAnnotationPresent(Optional.class) || p.isAnnotationPresent(DefaultValue.class);
+            optionalCounter += optional ? 1 : 0;
+            sb.append(optional ? "[" : "");
+            sb.append(p.getName());
+            sb.append(p.getType().isArray() ? "..." : "");
+        }
+        for (int i = 0; i < optionalCounter; i++) {
+            sb.append("]");
+        }
+
+        sb.append("\n");
+        sb.append(method.isAnnotationPresent(Usage.class) ? method.getAnnotation(Usage.class).value() + "\n" : "");
+
+        if (flags.size() > 0) {
+            sb.append("\n");
+        }
+
+        for (Parameter p: flags) {
+            sb.append("  -");
+            Flag flagAnno = p.getAnnotation(Flag.class);
+            sb.append(flagAnno.value());
+            if (!flagAnno.alternative().isEmpty()) {
+                sb.append(", --");
+                sb.append(flagAnno.alternative());
+            }
+            sb.append("  ");
+            sb.append(p.isAnnotationPresent(Usage.class) ? p.getAnnotation(Usage.class).value() : "");
+            sb.append("\n");
+        }
+
+        return sb.toString();
     }
 
     private int countArgumentParameters(Method method) {
