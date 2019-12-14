@@ -252,30 +252,15 @@ public class EasyEngine implements CliEngine {
                     j++;
                 }
                 paramValues[argumentPosition] = arr;
-            } else if (arrayType.equals(String.class)) {
-                String[] arr = new String[arguments.size() - cmdIndex];
-                int j = 0;
-                while (cmdIndex < arguments.size()) {
-                    arr[j] = arguments.get(cmdIndex);
-                    cmdIndex++;
-                    j++;
-                }
-                paramValues[argumentPosition] = arr;
-            } else if (arrayType.isEnum()) {
-                // GENERIC ENUM ARRAYS ARE NOT POSSIBLE IN JAVA.
-                // Collection would work, but not array
-                //EnumSet set = EnumSet.noneOf(arrayType);
-                //Enum<?>[] arr = new Enum<?>[arguments.size() - cmdIndex];
+            } else {
                 Object[] arr = (Object[]) Array.newInstance(arrayType, arguments.size() - cmdIndex);
                 int j = 0;
                 while (cmdIndex < arguments.size()) {
-                    //set.add(tp.toEnum(arrayType, arguments.get(cmdIndex)));
-                    arr[j] = tp.toEnum(arrayType, arguments.get(cmdIndex));
+                    arr[j] = tp.parseType(arrayType, arguments.get(cmdIndex));
                     cmdIndex++;
                     j++;
                 }
                 paramValues[argumentPosition] = arr;
-                //paramValues[argumentPosition] = null;
             }
             return -1;
         }

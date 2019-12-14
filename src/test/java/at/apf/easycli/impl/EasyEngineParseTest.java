@@ -104,7 +104,6 @@ public class EasyEngineParseTest {
         Assert.assertEquals(15, container.getValue().intValue());
     }
 
-    // NOT POSSIBLE IN JAVA
     @Test
     public void parseWithEnumArray_shouldWork() throws Exception {
         List<Material> materials = new LinkedList<>();
@@ -120,6 +119,22 @@ public class EasyEngineParseTest {
         Assert.assertEquals(2, materials.size());
         Assert.assertEquals(Material.COOPER, materials.get(0));
         Assert.assertEquals(Material.STEEL, materials.get(1));
+    }
+
+    @Test
+    public void parseWithStringArray_shouldWork() throws Exception {
+        StringBuilder sb = new StringBuilder();
+        engine.register(new Object(){
+            @Command("/bla")
+            void bla(String[] arr) {
+                for (String m: arr) {
+                    sb.append(m);
+                }
+            }
+        });
+        engine.parse("/bla cooper steel");
+        Assert.assertEquals(11, sb.toString().length());
+        Assert.assertEquals("coopersteel", sb.toString());
     }
 
     @Test
