@@ -49,4 +49,17 @@ public interface CliEngine {
      */
     Object parse(String cmd, Object... metadata) throws Exception;
 
+    /***
+     * Lists all registered commands with their main usage description.
+     * @return String with each registered command in a single line.
+     */
+    String listCommands();
+
+    /***
+     * Returns the usage text for the given command.
+     * @param cmd Command that needs to start with a registered @{@link at.apf.easycli.annotation.Command}.
+     * @return The usage text for the given command.
+     */
+    String usage(String cmd);
+
 }

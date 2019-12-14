@@ -1,5 +1,6 @@
 package at.apf.easycli.util;
 
+import java.lang.reflect.Parameter;
 import java.util.EnumSet;
 
 public class TypeParser {
@@ -9,6 +10,24 @@ public class TypeParser {
                 || type.equals(double.class) || type.equals(boolean.class) || type.equals(String.class)
                 || type.equals(char.class) || type.isEnum()
                 || (type.isArray() && isValidType(type.getComponentType()) && !type.getComponentType().isArray());
+    }
+
+    /***
+     * Retunrs the default value for an optional {@link Parameter}.
+     * @param par the parameter to find out the default value.
+     * @return the default value for the par's type.
+     */
+    public Object defaultValue(Parameter par) {
+        if (par.getType().equals(boolean.class)) {
+            return false;
+        } else if (par.getType().equals(int.class) || par.getType().equals(long.class)
+                || par.getType().equals(char.class)) {
+            return 0;
+        } else if (par.getType().equals(float.class) || par.getType().equals(double.class)) {
+            return 0.0;
+        } else {
+            return null;
+        }
     }
 
     public Object parseType(Class type, String str) {

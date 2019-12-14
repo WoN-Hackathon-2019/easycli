@@ -6,6 +6,7 @@ import at.apf.easycli.annotation.DefaultValue;
 import at.apf.easycli.annotation.Flag;
 import at.apf.easycli.annotation.Meta;
 import at.apf.easycli.annotation.Optional;
+import at.apf.easycli.annotation.Usage;
 import at.apf.easycli.exception.CommandNotFoundException;
 import at.apf.easycli.exception.MalformedCommandException;
 import at.apf.easycli.exception.MalformedMethodException;
@@ -24,6 +25,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /***
  * Implementation to register command-containing objects and then parse command strings to invoke the implemented
@@ -34,6 +38,7 @@ public class EasyEngine implements CliEngine {
     private Map<String, Tuple<Method, Object>> commands = new HashMap<>();
     private TypeParser tp = new TypeParser();
     private CliSplitter splitter = new CliSplitter();
+    private UsagePrinter usagePrinter = new UsagePrinter();
 
     @Override
     public void register(Object obj) {
@@ -96,8 +101,23 @@ public class EasyEngine implements CliEngine {
     @Override
     public Object parse(String cmd, Object... metadata) throws Exception {
         List<String> parts = splitter.split(cmd);
-        List<String> flags = getFlags(parts);
-        List<String> arguments = getArguments(parts);
+        List<String> flags = parts.stream() // add --flag
+                .skip(1)
+                .filter(a -> a.startsWith("--"))
+                .map(a -> a.substring(2))
+                .collect(Collectors.toList());
+        flags.addAll(parts.stream() // add -abc
+                .skip(1)
+                .filter(a -> a.startsWith("-") && !a.startsWith("--"))
+                .filter(a -> !(a.charAt(1) >= '0' && a.charAt(1) <= '9'))
+                .map(a -> a.substring(1))
+                .flatMapToInt(CharSequence::chars)
+                .mapToObj(i -> Character.toString((char) i))
+                .collect(Collectors.toList()));
+        List<String> arguments = parts.stream()
+                .skip(1)
+                .filter(a -> !a.startsWith("-") || (a.charAt(1) >= '0' && a.charAt(1) <= '9'))
+                .collect(Collectors.toList());
         String command = parts.get(0);
 
         if (!commands.containsKey(command)) {
@@ -120,8 +140,10 @@ public class EasyEngine implements CliEngine {
             }
         }
 
-        // Hard to realise ...
-        if (cmdIndex > 0 && arguments.size() > countArgumentParameters(method)) {
+        int countArgumentParameters = (int) Stream.of(method.getParameters())
+                .filter(p -> !p.isAnnotationPresent(Meta.class) && !p.isAnnotationPresent(Flag.class))
+                .count();
+        if (cmdIndex > 0 && arguments.size() > countArgumentParameters) {
             throw new MalformedCommandException("Too many arguments passed for command '" + command + "'");
         }
 
@@ -129,14 +151,22 @@ public class EasyEngine implements CliEngine {
         return method.invoke(commands.get(command).getValue(), paramValues);
     }
 
-    private int countArgumentParameters(Method method) {
-        int count = 0;
-        for (Parameter p: method.getParameters()) {
-            if (!p.isAnnotationPresent(Meta.class) && !p.isAnnotationPresent(Flag.class)) {
-                count++;
-            }
+    @Override
+    public String listCommands() {
+        return usagePrinter.listCommands(commands.values().stream().map(t -> t.getKey()).collect(Collectors.toList()));
+    }
+
+    @Override
+    public String usage(String cmd) {
+        List<String> parts = splitter.split(cmd);
+        String command = parts.get(0);
+
+        if (!commands.containsKey(command)) {
+            throw new CommandNotFoundException("Command '" + command + "' not registered");
         }
-        return count;
+
+        Method method = commands.get(command).getKey();
+        return usagePrinter.commandUsage(method);
     }
 
     /***
@@ -156,7 +186,7 @@ public class EasyEngine implements CliEngine {
 
         if (metaIndex >= metadata.length) {
             if (par.isAnnotationPresent(Optional.class)) {
-                paramValues[argumentPosition] = getOptionalValue(par);
+                paramValues[argumentPosition] = tp.defaultValue(par);
             } else if (par.isAnnotationPresent(DefaultValue.class)) {
                 String defaultValue = par.getAnnotation(DefaultValue.class).value();
                 paramValues[argumentPosition] = tp.parseType(par.getType(), defaultValue);
@@ -185,7 +215,7 @@ public class EasyEngine implements CliEngine {
         if (arguments.size() <= cmdIndex) {
             // Not set
             if (par.isAnnotationPresent(Optional.class)) {
-                paramValues[argumentPosition] = getOptionalValue(par);
+                paramValues[argumentPosition] = tp.defaultValue(par);
             } else if (par.isAnnotationPresent(DefaultValue.class)) {
                 String defaultValue = par.getAnnotation(DefaultValue.class).value();
                 paramValues[argumentPosition] = tp.parseType(par.getType(), defaultValue);
@@ -287,70 +317,6 @@ public class EasyEngine implements CliEngine {
         Flag flagAnno = par.getAnnotation(Flag.class);
         paramValues[argumentPosition] = flags.contains(flagAnno.alternative()) || flags.contains(flagAnno.value() + "");
         return true;
-    }
-
-    /***
-     * Returns a list of all arguments in the cmdParts-list without any flags.
-     * @param cmdParts the parts of the command.
-     * @return list of arguments.
-     */
-    private List<String> getArguments(List<String> cmdParts) {
-        List<String> args = new ArrayList<>();
-
-        for (int i = 1; i < cmdParts.size(); i++) {
-            String p = cmdParts.get(i);
-            if (p.startsWith("-")) {
-                if (p.charAt(1) >= '0' && p.charAt(1) <= '9') {
-                    args.add(p);
-                }
-            } else {
-                args.add(p);
-            }
-        }
-
-        return args;
-    }
-
-    /***
-     * Returns a list of all flags in the cmdParts-list without any argments.
-     * @param cmdParts the parts of the command.
-     * @return list of flags.
-     */
-    private List<String> getFlags(List<String> cmdParts) {
-        List<String> flags = new ArrayList<>();
-
-        for (String p: cmdParts) {
-            if (p.startsWith("--")) {
-                flags.add(p.substring(2));
-            } else if (p.startsWith("-")) {
-                if (p.charAt(1) >= '0' && p.charAt(1) <= '9') {
-                    continue;
-                }
-                for (int i = 1; i < p.length(); i++) {
-                    flags.add(p.charAt(i) + "");
-                }
-            }
-        }
-
-        return flags;
-    }
-
-    /***
-     * Retunrs the default value for an optional {@link Parameter}.
-     * @param par the parameter to find out the default value.
-     * @return the default value for the par's type.
-     */
-    private Object getOptionalValue(Parameter par) {
-        if (par.getType().equals(boolean.class)) {
-            return false;
-        } else if (par.getType().equals(int.class) || par.getType().equals(long.class)
-                || par.getType().equals(char.class)) {
-            return 0;
-        } else if (par.getType().equals(float.class) || par.getType().equals(double.class)) {
-            return 0.0;
-        } else {
-            return null;
-        }
     }
 
 }
