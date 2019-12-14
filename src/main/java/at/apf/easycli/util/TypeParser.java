@@ -7,11 +7,14 @@ public class TypeParser {
     public boolean isValidType(Class type) {
         return type.equals(int.class) || type.equals(long.class) || type.equals(float.class)
                 || type.equals(double.class) || type.equals(boolean.class) || type.equals(String.class)
-                || type.isEnum() || (type.isArray() && isValidType(type.getComponentType()));
+                || type.equals(char.class) || type.isEnum()
+                || (type.isArray() && isValidType(type.getComponentType()) && !type.getComponentType().isArray());
     }
 
     public Object parseType(Class type, String str) {
-        if (type.equals(int.class)) {
+        if (type.equals(char.class)) {
+            return toChar(str);
+        } else if (type.equals(int.class)) {
             return toInt(str);
         } else if (type.equals(float.class)) {
             return toFloat(str);
@@ -28,6 +31,10 @@ public class TypeParser {
         } else {
             return null;
         }
+    }
+
+    public char toChar(String str) {
+        return str.toCharArray()[0];
     }
 
     public int toInt(String str) {

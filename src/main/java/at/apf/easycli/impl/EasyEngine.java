@@ -13,10 +13,15 @@ import at.apf.easycli.util.Tuple;
 import at.apf.easycli.util.TypeParser;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -193,7 +198,16 @@ public class EasyEngine implements CliEngine {
         if (par.getType().isArray()) {
             // Handle array
             Class arrayType = par.getType().getComponentType();
-            if (arrayType.equals(int.class)) {
+            if (arrayType.equals(char.class)) {
+                char[] arr = new char[arguments.size() - cmdIndex];
+                int j = 0;
+                while (cmdIndex < arguments.size()) {
+                    arr[j] = tp.toChar(arguments.get(cmdIndex));
+                    cmdIndex++;
+                    j++;
+                }
+                paramValues[argumentPosition] = arr;
+            } else if (arrayType.equals(int.class)) {
                 int[] arr = new int[arguments.size() - cmdIndex];
                 int j = 0;
                 while (cmdIndex < arguments.size()) {
@@ -247,6 +261,21 @@ public class EasyEngine implements CliEngine {
                     j++;
                 }
                 paramValues[argumentPosition] = arr;
+            } else if (arrayType.isEnum()) {
+                // GENERIC ENUM ARRAYS ARE NOT POSSIBLE IN JAVA.
+                // Collection would work, but not array
+                //EnumSet set = EnumSet.noneOf(arrayType);
+                //Enum<?>[] arr = new Enum<?>[arguments.size() - cmdIndex];
+                Object[] arr = (Object[]) Array.newInstance(arrayType, arguments.size() - cmdIndex);
+                int j = 0;
+                while (cmdIndex < arguments.size()) {
+                    //set.add(tp.toEnum(arrayType, arguments.get(cmdIndex)));
+                    arr[j] = tp.toEnum(arrayType, arguments.get(cmdIndex));
+                    cmdIndex++;
+                    j++;
+                }
+                paramValues[argumentPosition] = arr;
+                //paramValues[argumentPosition] = null;
             }
             return -1;
         }
@@ -329,7 +358,8 @@ public class EasyEngine implements CliEngine {
     private Object getOptionalValue(Parameter par) {
         if (par.getType().equals(boolean.class)) {
             return false;
-        } else if (par.getType().equals(int.class) || par.getType().equals(long.class)) {
+        } else if (par.getType().equals(int.class) || par.getType().equals(long.class)
+                || par.getType().equals(char.class)) {
             return 0;
         } else if (par.getType().equals(float.class) || par.getType().equals(double.class)) {
             return 0.0;

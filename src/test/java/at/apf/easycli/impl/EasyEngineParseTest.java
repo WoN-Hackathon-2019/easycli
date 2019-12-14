@@ -13,6 +13,9 @@ import at.apf.easycli.util.enumeration.Material;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class EasyEngineParseTest {
 
     private CliEngine engine = new EasyEngine();
@@ -73,16 +76,17 @@ public class EasyEngineParseTest {
     public void parseAllTypes_shouldWork() throws Exception {
         engine.register(new Object(){
             @Command("/bla")
-            void bla(int a, long b, float c, double d, boolean e, String f) {
+            void bla(int a, long b, float c, double d, boolean e, String f, char g) {
                 Assert.assertEquals(1, a);
                 Assert.assertEquals(10000000000L, b);
                 Assert.assertEquals(1.1, c, 0.0001);
                 Assert.assertEquals(-4.543, d, 0.0000001);
                 Assert.assertTrue(e);
                 Assert.assertEquals("jaja", f);
+                Assert.assertEquals('A', g);
             }
         });
-        engine.parse("/bla 1 10000000000 1.1 -4.543 true jaja");
+        engine.parse("/bla 1 10000000000 1.1 -4.543 true jaja A");
     }
 
     @Test
@@ -98,6 +102,24 @@ public class EasyEngineParseTest {
         });
         engine.parse("/bla 1 2 3 4 5");
         Assert.assertEquals(15, container.getValue().intValue());
+    }
+
+    // NOT POSSIBLE IN JAVA
+    @Test
+    public void parseWithEnumArray_shouldWork() throws Exception {
+        List<Material> materials = new LinkedList<>();
+        engine.register(new Object(){
+            @Command("/bla")
+            void bla(Material[] arr) {
+                for (Material m: arr) {
+                    materials.add(m);
+                }
+            }
+        });
+        engine.parse("/bla cooper steel");
+        Assert.assertEquals(2, materials.size());
+        Assert.assertEquals(Material.COOPER, materials.get(0));
+        Assert.assertEquals(Material.STEEL, materials.get(1));
     }
 
     @Test
