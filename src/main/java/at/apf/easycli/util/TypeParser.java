@@ -1,11 +1,13 @@
 package at.apf.easycli.util;
 
+import java.util.EnumSet;
+
 public class TypeParser {
 
     public boolean isValidType(Class type) {
         return type.equals(int.class) || type.equals(long.class) || type.equals(float.class)
                 || type.equals(double.class) || type.equals(boolean.class) || type.equals(String.class)
-                || (type.isArray() && isValidType(type.getComponentType()));
+                || type.isEnum() || (type.isArray() && isValidType(type.getComponentType()));
     }
 
     public Object parseType(Class type, String str) {
@@ -21,6 +23,8 @@ public class TypeParser {
             return str;
         } else if (type.equals(boolean.class)) {
             return toBool(str);
+        } else if (type.isEnum()) {
+            return toEnum(type, str);
         } else {
             return null;
         }
@@ -44,5 +48,14 @@ public class TypeParser {
 
     public boolean toBool(String str) {
         return Boolean.parseBoolean(str);
+    }
+
+    public <E extends Enum<E>> E toEnum(Class<E> enumType, String str) {
+        for (E enumEntity: EnumSet.allOf(enumType)) {
+            if (enumEntity.name().equalsIgnoreCase(str)) {
+                return enumEntity;
+            }
+        }
+        throw new IllegalArgumentException("'" + str + "' is not an entity in the enum '" + enumType.getName() + "'");
     }
 }
