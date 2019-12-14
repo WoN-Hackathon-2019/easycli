@@ -15,7 +15,7 @@ Add the dependency to your pom.xml:
 <dependency>
     <groupId>at.apf.easycli</groupId>
     <artifactId>easy-cli</artifactId>
-    <version>0.2</version>
+    <version>0.3</version>
 </dependency>
 ```
 
@@ -71,11 +71,13 @@ engine.parse("/sendUser \"Hi Bob\"",
 ```
 
 ### Supported Datatypes
+ - char
  - int
  - long
  - float
  - double
  - boolean
+ - enum
  - String
  - Array (of one of the types above)
  
@@ -113,14 +115,17 @@ engine.parse("/sendUser \"Hi Bob\"",
  - @Meta parameters can be combined with @Optional and @DefaultValue.
 
 ### Changelog
-##### 0.2
+##### v0.2
  - Ignoring multiple spaces in the input command and handle them as a single
    one
  - Introduced @Meta annotation to pass outstanding objects to the commands
-   implementation.   
+   implementation.
+
+##### v0.3
+ - enum support
+ - char support 
  
 ### TODOs
- - Support enum types
  - allow default values for array
  - implement usage method
  - Grouped Optionals
