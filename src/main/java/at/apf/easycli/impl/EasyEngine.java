@@ -38,6 +38,7 @@ public class EasyEngine implements CliEngine {
     private Map<String, Tuple<Method, Object>> commands = new HashMap<>();
     private TypeParser tp = new TypeParser();
     private CliSplitter splitter = new CliSplitter();
+    private UsagePrinter usagePrinter = new UsagePrinter();
 
     @Override
     public void register(Object obj) {
@@ -134,6 +135,11 @@ public class EasyEngine implements CliEngine {
     }
 
     @Override
+    public String listCommands() {
+        return usagePrinter.listCommands(commands.values().stream().map(t -> t.getKey()).collect(Collectors.toList()));
+    }
+
+    @Override
     public String usage(String cmd) {
         List<String> parts = splitter.split(cmd);
         String command = parts.get(0);
@@ -143,56 +149,7 @@ public class EasyEngine implements CliEngine {
         }
 
         Method method = commands.get(command).getKey();
-        Parameter[] params = method.getParameters();
-        List<Parameter> flags = Stream.of(params)
-            .filter(p -> p.isAnnotationPresent(Flag.class))
-            .sorted((a, b) -> a.getAnnotation(Flag.class).value() - b.getAnnotation(Flag.class).value())
-            .collect(Collectors.toList());
-        List<Parameter> arguments = Stream.of(params)
-            .filter(p -> !p.isAnnotationPresent(Flag.class) && !p.isAnnotationPresent(Meta.class))
-            .collect(Collectors.toList());
-
-        StringBuilder sb = new StringBuilder("Usage: ");
-        sb.append(command);
-
-        if (flags.size() > 0) {
-            sb.append(" [FLAG...]");
-        }
-
-        int optionalCounter = 0;
-        for (Parameter p: arguments) {
-            sb.append(" ");
-            boolean optional = p.isAnnotationPresent(Optional.class) || p.isAnnotationPresent(DefaultValue.class);
-            optionalCounter += optional ? 1 : 0;
-            sb.append(optional ? "[" : "");
-            sb.append(p.getName());
-            sb.append(p.getType().isArray() ? "..." : "");
-        }
-        for (int i = 0; i < optionalCounter; i++) {
-            sb.append("]");
-        }
-
-        sb.append("\n");
-        sb.append(method.isAnnotationPresent(Usage.class) ? method.getAnnotation(Usage.class).value() + "\n" : "");
-
-        if (flags.size() > 0) {
-            sb.append("\n");
-        }
-
-        for (Parameter p: flags) {
-            sb.append("  -");
-            Flag flagAnno = p.getAnnotation(Flag.class);
-            sb.append(flagAnno.value());
-            if (!flagAnno.alternative().isEmpty()) {
-                sb.append(", --");
-                sb.append(flagAnno.alternative());
-            }
-            sb.append("  ");
-            sb.append(p.isAnnotationPresent(Usage.class) ? p.getAnnotation(Usage.class).value() : "");
-            sb.append("\n");
-        }
-
-        return sb.toString();
+        return usagePrinter.commandUsage(method);
     }
 
     private int countArgumentParameters(Method method) {
