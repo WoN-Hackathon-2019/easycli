@@ -10,6 +10,20 @@ mvn clean install
 
 ### Usage
 ##### Maven
+Add the github repo to your pom.xml:
+```xml
+<repositories>
+    <repository>
+        <id>easycli</id>
+        <url>https://raw.github.com/schokobaer/easycli/mvn-repo/</url>
+        <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+        </snapshots>
+    </repository>
+</repositories>
+```
+
 Add the dependency to your pom.xml:
 ```xml
 <dependency>
