@@ -375,4 +375,16 @@ public class EasyEngineParseTest {
         engine.parse("/add 2 3 4");
     }
 
+
+    @Test(expected = MalformedCommandException.class)
+    public void parseParameterlessWithParameters_shouldThrowMalformedCommandException() throws Exception{
+        engine.register(new Object(){
+            @Command("/noparameter")
+            void noparameter(){
+                System.out.println("this should not be shown");
+            }
+        });
+        engine.parse("/noparameter parameter");
+    }
+
 }
