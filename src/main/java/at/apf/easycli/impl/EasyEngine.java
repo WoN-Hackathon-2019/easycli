@@ -139,13 +139,17 @@ public class EasyEngine implements CliEngine {
                 cmdIndex = handleArgument(arguments, cmdIndex, params[i], paramValues, i);
             }
         }
-
         int countArgumentParameters = (int) Stream.of(method.getParameters())
                 .filter(p -> !p.isAnnotationPresent(Meta.class) && !p.isAnnotationPresent(Flag.class))
                 .count();
-        if (cmdIndex > 0 && arguments.size() > countArgumentParameters) {
+
+        System.out.println("countArgumentParameters: " + countArgumentParameters);
+        System.out.println("cmdIndex: " + cmdIndex);
+        System.out.println("arguments.size(): " + arguments.size());
+        if ((cmdIndex > 0 && arguments.size() > countArgumentParameters) || (countArgumentParameters == 0 && arguments.size() > 0)) {
             throw new MalformedCommandException("Too many arguments passed for command '" + command + "'");
         }
+
 
         method.setAccessible(true);
         return method.invoke(commands.get(command).getValue(), paramValues);
