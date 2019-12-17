@@ -143,9 +143,6 @@ public class EasyEngine implements CliEngine {
                 .filter(p -> !p.isAnnotationPresent(Meta.class) && !p.isAnnotationPresent(Flag.class))
                 .count();
 
-        System.out.println("countArgumentParameters: " + countArgumentParameters);
-        System.out.println("cmdIndex: " + cmdIndex);
-        System.out.println("arguments.size(): " + arguments.size());
         if ((cmdIndex > 0 && arguments.size() > countArgumentParameters) || (countArgumentParameters == 0 && arguments.size() > 0)) {
             throw new MalformedCommandException("Too many arguments passed for command '" + command + "'");
         }
